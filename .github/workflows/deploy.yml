@@ -50,7 +50,7 @@ jobs:
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/innovatech-key.pem
+          printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/innovatech-key.pem
           chmod 400 ~/.ssh/innovatech-key.pem
           ssh-keyscan -H ${{ secrets.EC2_FRONTEND_IP }} >> ~/.ssh/known_hosts
 
