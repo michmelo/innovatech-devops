@@ -9,23 +9,35 @@ name: taller-docker
 services:
   java-backend:
     build:
-      context: .
-      dockerfile: Dockerfile.java
+      context: ./java-backend
+      dockerfile: Dockerfile
+    container_name: java-backend
     ports:
       - "8080:8080"
+    volumes:
+      - java-data:/app/data
+    networks:
+      - app-network
+    restart: unless-stopped
 
   python-backend:
     build:
-      context: .
+      context: ./python-backend
       dockerfile: Dockerfile
+    container_name: python-backend
     ports:
-      # En algunos macOS el puerto 5000 ya está en uso; 5001 evita el choque.
       - "5001:5000"
+    volumes:
+      - python-data:/app/data
+    networks:
+      - app-network
+    restart: unless-stopped
 
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.node
+      context: ./node-frontend
+      dockerfile: Dockerfile
+    container_name: frontend-app
     ports:
       - "3000:3000"
     environment:
@@ -34,3 +46,21 @@ services:
     depends_on:
       - java-backend
       - python-backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+# Named volumes — Docker administra dónde se guardan físicamente.
+# Elegimos named volume sobre bind mount porque:
+# - Es portable: funciona igual en cualquier máquina o EC2
+# - Es más seguro: no expone rutas del sistema host
+# - Ideal para datos críticos que deben sobrevivir reinicios
+volumes:
+  java-data:
+  python-data:
+
+# Red interna — los servicios se hablan por nombre
+# sin necesidad de conocer IPs
+networks:
+  app-network:
+    driver: bridge
